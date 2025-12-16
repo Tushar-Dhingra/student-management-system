@@ -36,7 +36,3 @@ npm run dev
 ## Test Credentials
 - **Admin:** admin@test.com / admin123
 - **Student:** student@test.com / student123
-
-## Deployment URLs
-- Frontend: [Your Vercel URL]
-- Backend: [Your Render URL]
