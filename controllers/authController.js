@@ -46,7 +46,12 @@ const signup = async (req, res) => {
 
     // Send verification email (only for students)
     if (role === 'student') {
-      await sendVerificationEmail(email, verificationToken);
+      try {
+        await sendVerificationEmail(email, verificationToken);
+      } catch (emailError) {
+        console.log('Email sending failed:', emailError.message);
+        // Continue without failing the signup
+      }
     }
 
     res.status(201).json({
