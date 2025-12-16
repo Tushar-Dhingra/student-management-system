@@ -24,10 +24,10 @@ const signup = async (req, res) => {
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
     // Create user
-    const user = new User({ 
-      email, 
-      password, 
-      role, 
+    const user = new User({
+      email,
+      password,
+      role,
       verificationToken,
       isVerified: role === 'admin' // Auto-verify admin users
     });
@@ -55,8 +55,8 @@ const signup = async (req, res) => {
     }
 
     res.status(201).json({
-      message: role === 'admin' 
-        ? 'Admin account created successfully' 
+      message: role === 'admin'
+        ? 'Admin account created successfully'
         : 'User created successfully. Please check your email to verify your account.',
       user: {
         id: user._id,
@@ -66,6 +66,7 @@ const signup = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Signup error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -141,7 +142,7 @@ const getMe = async (req, res) => {
 const verifyEmail = async (req, res) => {
   try {
     const { token } = req.params;
-    
+
     const user = await User.findOne({ verificationToken: token });
     console.log(user, "user!!!!!!!!!!!");
     if (!user) {
@@ -162,7 +163,7 @@ const verifyEmail = async (req, res) => {
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -211,7 +212,7 @@ const resetPassword = async (req, res) => {
 const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    
+
     const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });

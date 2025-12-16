@@ -16,6 +16,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
+app.options('*', cors()); // Enable pre-flight across-the-board
 app.use(express.json());
 app.use(cookieParser());
 
