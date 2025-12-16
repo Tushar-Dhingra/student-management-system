@@ -54,6 +54,18 @@ const signup = async (req, res) => {
       }
     }
 
+    // NEW: If user is verified (admin), generate token and set cookie immediately
+    if (user.isVerified) {
+      const token = generateToken(user._id);
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+    }
+
     res.status(201).json({
       message: role === 'admin'
         ? 'Admin account created successfully'

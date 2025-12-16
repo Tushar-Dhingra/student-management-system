@@ -4,15 +4,17 @@ const User = require('../models/User');
 // Verify JWT token
 const authenticate = async (req, res, next) => {
   try {
+    console.log('Auth Middleware - Headers:', req.headers);
+    console.log('Auth Middleware - Cookies:', req.cookies);
     const token = req.cookies.token || req.header('Authorization')?.replace('Bearer ', '');
-    
+
     if (!token) {
       return res.status(401).json({ message: 'Access denied. No token provided.' });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId).select('-password');
-    
+
     if (!user) {
       return res.status(401).json({ message: 'Invalid token.' });
     }
@@ -37,11 +39,11 @@ const requireStudentOrAdmin = (req, res, next) => {
   if (req.user.role === 'admin') {
     return next();
   }
-  
+
   if (req.user.role === 'student' && req.params.id === req.user._id.toString()) {
     return next();
   }
-  
+
   res.status(403).json({ message: 'Access denied.' });
 };
 
