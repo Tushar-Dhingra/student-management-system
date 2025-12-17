@@ -13,7 +13,7 @@ const getAllStudents = async (req, res) => {
     const totalPages = Math.ceil(totalStudents / limit);
 
     const students = await Student.find()
-      .populate('userId', 'email')
+      .populate('userId', 'email isVerified')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 }); // Optional: sort by newest first
@@ -35,9 +35,9 @@ const getStudentProfile = async (req, res) => {
     let student;
 
     if (req.user.role === 'admin') {
-      student = await Student.findById(req.params.id).populate('userId', 'email');
+      student = await Student.findById(req.params.id).populate('userId', 'email isVerified');
     } else {
-      student = await Student.findOne({ userId: req.user._id }).populate('userId', 'email');
+      student = await Student.findOne({ userId: req.user._id }).populate('userId', 'email isVerified');
     }
 
     if (!student) {
@@ -78,7 +78,7 @@ const createStudent = async (req, res) => {
     });
     await student.save();
 
-    const populatedStudent = await Student.findById(student._id).populate('userId', 'email');
+    const populatedStudent = await Student.findById(student._id).populate('userId', 'email isVerified');
     res.status(201).json(populatedStudent);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -113,7 +113,7 @@ const updateStudent = async (req, res) => {
       await User.findByIdAndUpdate(student.userId, { email });
     }
 
-    const updatedStudent = await Student.findById(student._id).populate('userId', 'email');
+    const updatedStudent = await Student.findById(student._id).populate('userId', 'email isVerified');
     res.json(updatedStudent);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

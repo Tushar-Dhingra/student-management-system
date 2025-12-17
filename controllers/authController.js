@@ -95,9 +95,9 @@ const login = async (req, res) => {
     }
 
     // Check if email is verified
-    if (!user.isVerified) {
-      return res.status(400).json({ message: 'Please verify your email before logging in' });
-    }
+    // if (!user.isVerified) {
+    //   return res.status(400).json({ message: 'Please verify your email before logging in' });
+    // }
 
     // Check password
     const isMatch = await user.comparePassword(password);
@@ -121,7 +121,8 @@ const login = async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
-        role: user.role
+        role: user.role,
+        isVerified: user.isVerified
       }
     });
   } catch (error) {
@@ -142,7 +143,10 @@ const getMe = async (req, res) => {
       user: {
         id: req.user._id,
         email: req.user.email,
-        role: req.user.role
+        id: req.user._id,
+        email: req.user.email,
+        role: req.user.role,
+        isVerified: req.user.isVerified
       }
     });
   } catch (error) {
@@ -244,4 +248,34 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, logout, getMe, verifyEmail, forgotPassword, resetPassword, changePassword };
+// Resend verification email
+const resendVerificationEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: 'Email is already verified' });
+    }
+
+    // Reuse existing token or generate new one? 
+    // Let's generate a new one to be safe and reset potentially expired/lost ones if we had expiration.
+    // But for now, we can just reuse or overwrite. Let's overwrite.
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    user.verificationToken = verificationToken;
+    await user.save();
+
+    await sendVerificationEmail(email, verificationToken);
+
+    res.json({ message: 'Verification email sent successfully' });
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+module.exports = { signup, login, logout, getMe, verifyEmail, forgotPassword, resetPassword, changePassword, resendVerificationEmail };
