@@ -2,10 +2,28 @@ const Student = require('../models/Student');
 const User = require('../models/User');
 
 // Get all students (Admin only)
+// Get all students (Admin only)
 const getAllStudents = async (req, res) => {
   try {
-    const students = await Student.find().populate('userId', 'email');
-    res.json(students);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalStudents = await Student.countDocuments();
+    const totalPages = Math.ceil(totalStudents / limit);
+
+    const students = await Student.find()
+      .populate('userId', 'email')
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 }); // Optional: sort by newest first
+
+    res.json({
+      students,
+      currentPage: page,
+      totalPages,
+      totalStudents
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -15,7 +33,7 @@ const getAllStudents = async (req, res) => {
 const getStudentProfile = async (req, res) => {
   try {
     let student;
-    
+
     if (req.user.role === 'admin') {
       student = await Student.findById(req.params.id).populate('userId', 'email');
     } else {
@@ -112,7 +130,7 @@ const deleteStudent = async (req, res) => {
 
     // Delete user account
     await User.findByIdAndDelete(student.userId);
-    
+
     // Delete student profile
     await Student.findByIdAndDelete(req.params.id);
 
