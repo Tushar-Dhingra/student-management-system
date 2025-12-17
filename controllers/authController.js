@@ -45,9 +45,10 @@ const signup = async (req, res) => {
     }
 
     // Send verification email (only for students)
+    let previewUrl;
     if (role === 'student') {
       try {
-        await sendVerificationEmail(email, verificationToken);
+        previewUrl = await sendVerificationEmail(email, verificationToken);
       } catch (emailError) {
         console.log('Email sending failed:', emailError.message);
         // Continue without failing the signup
@@ -75,7 +76,8 @@ const signup = async (req, res) => {
         email: user.email,
         role: user.role,
         isVerified: user.isVerified
-      }
+      },
+      previewUrl // Return preview URL for testing
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -269,9 +271,12 @@ const resendVerificationEmail = async (req, res) => {
     user.verificationToken = verificationToken;
     await user.save();
 
-    await sendVerificationEmail(email, verificationToken);
+    const previewUrl = await sendVerificationEmail(email, verificationToken);
 
-    res.json({ message: 'Verification email sent successfully' });
+    res.json({
+      message: 'Verification email sent successfully',
+      previewUrl
+    });
   } catch (error) {
     console.error('Resend verification error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
